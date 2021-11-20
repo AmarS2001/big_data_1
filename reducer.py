@@ -1,33 +1,46 @@
 #!/usr/bin/env python3
 
-from operator import itemgetter
-import sys
-
-curr_key = None
-curr_count = 0
-key = None
+import sys 
 
 
-for line in sys.stdin:
-	line = line.strip()
-	key, count = line.split('\t', 1)
-	try:
-		count = int(count)
-	except ValueError:
-		continue
+prs_city = None
+prs_state = None
+
+prs_city_cnt = 0
+prs_state_cnt= 0
+
+for inputs in sys.stdin:
+	data = inputs.strip()
+	data=data.split(",")
 	
+	if prs_state != data[0]:
+		if prs_state != None:
+			print(prs_city, prs_city_cnt)
+			print(prs_state, prs_state_cnt + prs_city_cnt)
+			prs_state_cnt = 0
+			prs_city = None
+		prs_state = data[0]
+		print(prs_state)
+		
+	if prs_city == None:
+		prs_city_cnt = 0
+		prs_city = data[1]
+		
+		
+	if prs_city == data[1]:
+		prs_city_cnt = prs_city_cnt + int(data[2])
 	
-	if curr_key == key:
-		curr_count += count
 	else:
-		if curr_key:
-			print('%s %s' % (int(curr_key), curr_count))
-			
-		curr_count = count
-		curr_key = key
+		print(prs_city,prs_city_cnt)
+		prs_state_cnt = prs_state_cnt + prs_city_cnt
+		prs_city = data[1]
+		prs_city_cnt = int(data[2])
 
-if curr_key == key:
-	print('%s %s' % (int(curr_key), curr_count))
+print(prs_city,prs_city_cnt)
+
+print(prs_state,prs_state_cnt + prs_city_cnt)
+		
 
 
-
+	
+	

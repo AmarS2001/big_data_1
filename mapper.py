@@ -2,60 +2,30 @@
 
 import sys
 import datetime
+import requests 
 import json
 
 
+start_lat= float(sys.argv[1])
+start_lng=float(sys.argv[2])
+D=float( sys.argv[3])
 
-desc_rule = ["lane blocked", "shoulder blocked", "overturned vehicle"]
-weather_rule = ["Heavy Snow", "Thunderstorm","Heavy Rain", "Heavy Rain Showers", "Blowing Dust"]
-
-format = ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:%S.%f")
-
-
-
-def weat_match(string, weather_rule):
-    for sub in weather_rule:
-        if string == sub:
-            return True
-    return False
-
-
-def desc_match(string, desc_rule):
-    string = string.lower()
-    for i in desc_rule:
-        if i in string:
-            return True
-    return False
+for line in sys.stdin:
+	data=json.loads(line.strip().replace("nan","NaN"))
+	try:
+		c_lat= float(data['Start_Lat'])
+		c_lng= float(data['Start_Lng'])
+		d= ( (c_lat - start_lat)**2 +   (c_lng-start_lng)**2  )**(1/2)
+		if D>d and c_lat != None and c_lng != None:
+			ans=requests.post('http://20.185.44.219:5000/',json = {'latitude':  c_lat , 'longitude': c_lng } )
+			city= json.loads(ans.text)
+			print('%s,%s,%s' %(city['state'],city['city'],1))
+	
+	except Exception as error:
+		pass
 
 
 
 
-def main():
-    for line in sys.stdin:
-        line = json.loads(line)
-        start = line["Start_Time"][0:23]
-        for fmt in format:
-            try:
-                time = datetime.datetime.strptime(start, fmt)
-                break
-            except ValueError:
-                continue
 
-        try:
-            if ((line["Severity"] >= 2.0) and (line["Sunrise_Sunset"] == "Night") and (line["Visibility(mi)"] <= 10.0)
-                and (line["Precipitation(in)"] >= 0.2) and (desc_match(line["Description"], desc_rule))
-                    and (weat_match(line["Weather_Condition"], weather_rule))):
-                value = 1
-                #print('%s	%s'%(time.hour,value))
-                if len(str(time.hour))==1:
-                	print('0%s	%s'%(time.hour,value))
-                else:
-                	print('%s	%s'%(time.hour,value))
-                
-                
-
-        except Exception as e:
-            continue
-
-main()
 
